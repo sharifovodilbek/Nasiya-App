@@ -2,17 +2,19 @@ import { ApiProperty } from "@nestjs/swagger"
 import { IsString } from "class-validator"
 
 export class CreateDebtDto {
-    @ApiProperty()
+    @ApiProperty({example:"Test Sinov"})
     @IsString()
     name:string
-    @ApiProperty()
+    @ApiProperty({example:"10.10.2024"})
+    @IsString()
+    startDate:string
+    @ApiProperty({example:"1 oy"})
     @IsString()
     term:string
-    @ApiProperty()
+    @ApiProperty({example:"Iphone 14 Pro, boshlang'ich to'lovi bor"})
     @IsString()
     note:string
-    @ApiProperty()
+    @ApiProperty({example:"string"})
     @IsString()
     debtorId:string
-
 }

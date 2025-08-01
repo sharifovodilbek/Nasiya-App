@@ -75,7 +75,7 @@ export class DebtorService {
     try {
       const existing = await this.prisma.debtor.findUnique({ where: { id } });
       if (!existing) {
-        throw new NotFoundException('Yangilamoqchi bo‘lgan qarzdor topilmadi');
+        throw new NotFoundException('Yangilamoqchi bo\'lgan qarzdor topilmadi');
       }
       return await this.prisma.debtor.update({ where: { id }, data });
     } catch (error) {
@@ -87,11 +87,11 @@ export class DebtorService {
     try {
       const existing = await this.prisma.debtor.findUnique({ where: { id } });
       if (!existing) {
-        throw new NotFoundException('O‘chirilmoqchi bo‘lgan qarzdor topilmadi');
+        throw new NotFoundException('O\'chirilmoqchi bo\'lgan qarzdor topilmadi');
       }
-      return await this.prisma.debtor.delete({ where: { id } });
+      return await this.prisma.debtor.delete({ where: { id } });  
     } catch (error) {
-      throw new BadRequestException('O‘chirishda xatolik: ' + error.message);
+      throw new BadRequestException('O\'chirishda xatolik: ' + error.message);
     }
   }
 }

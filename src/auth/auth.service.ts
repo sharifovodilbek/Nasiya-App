@@ -37,7 +37,7 @@ export class AuthService {
     const passwordMatches = await bcrypt.compare(dto.password, admin.password);
 
     if (!passwordMatches) {
-      throw new UnauthorizedException('Parol noto‘g‘ri');
+      throw new UnauthorizedException('Parol noto\'g\'ri');
     }
 
     const token = this.jwt.sign({ id: admin.id, role: admin.role });

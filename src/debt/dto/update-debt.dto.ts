@@ -3,16 +3,19 @@ import { CreateDebtDto } from './create-debt.dto';
 import { IsString } from 'class-validator';
 
 export class UpdateDebtDto extends PartialType(CreateDebtDto) {
-    @ApiProperty()
+    @ApiProperty({example:"Test Sinov"})
     @IsString()
-    name?: string
-    @ApiProperty()
+    name?:string
+    @ApiProperty({example:"10.10.2024"})
     @IsString()
-    term?: string
-    @ApiProperty()
+    startDate:string
+    @ApiProperty({example:"1 oy"})
     @IsString()
-    note?: string
-    @ApiProperty()
+    term?:string
+    @ApiProperty({example:"Iphone 14 Pro, boshlang'ich to'lovi bor"})
     @IsString()
-    debtorId?: string
+    note?:string
+    @ApiProperty({example:"string"})
+    @IsString()
+    debtorId?:string
 }

@@ -61,6 +61,7 @@ model Seller {
 model Debt {
   id           String        @id @default(uuid())
   name         String
+  startDate    String
   term         String
   note         String
   debtorId     String

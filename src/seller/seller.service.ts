@@ -95,7 +95,7 @@ export class SellerService {
     console.log(data);
 
     const { email, password } = data;
-    let seller = await this.prisma.seller.findUnique({ where: { email: data.email } });
+    let seller = await this.prisma.seller.findUnique({ where: { email } });
     if (!seller) throw new NotFoundException('seller not found');
 
     let match = bcrypt.compareSync(password, seller.password);
