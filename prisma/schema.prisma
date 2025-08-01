@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String   @unique
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Debtor {
+  id             String           @id @default(uuid())
+  fullname       String
+  address        String
+  note           String
+  sellerId       String
+  Seller         Seller           @relation(fields: [sellerId], references: [id])
+  Sms            Sms[]
+  Debt           Debt[]
+  Payment        Payment[]
+  NumberOfDebtor NumberOfDebtor[]
+  ImagesOfDebtor ImageOfDebtor[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Seller {
+  id          String    @id @default(uuid())
+  name        String
+  email       String    @unique
+  phone       String    @unique
+  password    String
+  passcode    Int
+  wallet      Int
+  role        Role      @default(SELLER)
+  resetOtp    String?
+  resetOtpExp DateTime?
+  verified    Boolean   @default(false)
+  Sample      Sample[]
+  Debtor      Debtor[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Debt {
+  id           String        @id @default(uuid())
+  name         String
+  term         String
+  note         String
+  debtorId     String
+  Debtor       Debtor        @relation(fields: [debtorId], references: [id])
+  Payments     Payment[]
+  ImagesOfDebt ImageOfDebt[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Payment {
+  id         String @id @default(uuid())
+  debtTime   String
+  debtAmount String
+  debtTerm   String
+  debtorId   String
+  Debtor     Debtor @relation(fields: [debtorId], references: [id])
+  debtId     String
+  Debt       Debt   @relation(fields: [debtId], references: [id])
+}
+
+model Sample {
+  id       String @id @default(uuid())
+  note     String
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id])
+}
+
+model Sms {
+  id       String @id @default(uuid())
+  text     String
+  debtorId String
+  debtor   Debtor @relation(fields: [debtorId], references: [id])
+}
+
+model NumberOfDebtor {
+  id        String   @id @default(uuid())
+  number    String
+  debtorId  String
+  debtor    Debtor   @relation(fields: [debtorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ImageOfDebtor {
+  id        String   @id @default(uuid())
+  image     String
+  debtorId  String
+  debtor    Debtor   @relation(fields: [debtorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ImageOfDebt {
+  id     String @id @default(uuid())
+  image  String
+  debtId String
+  Debt   Debt   @relation(fields: [debtId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  SELLER
+}
