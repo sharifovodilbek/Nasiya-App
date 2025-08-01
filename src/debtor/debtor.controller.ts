@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { DebtorService } from './debtor.service';
 import { CreateDebtorDto } from './dto/create-debtor.dto';
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
@@ -15,8 +15,12 @@ export class DebtorController {
   @RoleD(Role.SELLER)
   @Post()
   @UseGuards(AuthGuard, RoleGuard)
-  create(@Body() createDebtorDto: CreateDebtorDto) {
-    return this.debtorService.create(createDebtorDto);
+  create(
+    @Body() data: CreateDebtorDto,
+    @Req() req: Request
+  ) {
+    const sellerId = (req as any).user.id;
+    return this.debtorService.create(data, sellerId);
   }
 
   @ApiQuery({ name: 'page', required: false, type: Number })

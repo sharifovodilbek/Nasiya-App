@@ -69,6 +69,11 @@ export class SellerController {
     return await this.authService.refreshToken(data);
   }
 
+  @Patch(':id')
+    update(@Param('id') id: string, @Body() data: UpdateSellerDto) {
+      return this.authService.update(id, data);
+    }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.authService.remove(id);

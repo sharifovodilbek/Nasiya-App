@@ -21,87 +21,87 @@ export class SellerService {
   ) { }
 
   async findAll(
-  filter: string,
-  page: number,
-  limit: number,
-  sortBy: string,
-  sortOrder: 'asc' | 'desc',
-) {
-   const take = Number(limit) || 10
-  const skip = page ? (page - 1) * take : 0;
+    filter: string,
+    page: number,
+    limit: number,
+    sortBy: string,
+    sortOrder: 'asc' | 'desc',
+  ) {
+    const take = Number(limit) || 10
+    const skip = page ? (page - 1) * take : 0;
 
-  const where: any = {};
-  if (filter) {
-    where.OR = [
-      { name: { contains: filter, mode: 'insensitive' } },
-      { phone: { contains: filter, mode: 'insensitive' } },
-      { email: { contains: filter, mode: 'insensitive' } },
-    ];
+    const where: any = {};
+    if (filter) {
+      where.OR = [
+        { name: { contains: filter, mode: 'insensitive' } },
+        { phone: { contains: filter, mode: 'insensitive' } },
+        { email: { contains: filter, mode: 'insensitive' } },
+      ];
+    }
+
+    const orderBy: any = {};
+    if (sortBy) {
+      orderBy[sortBy] = sortOrder || 'asc';
+    }
+
+    const sellers = await this.prisma.seller.findMany({
+      where,
+      skip,
+      take,
+      orderBy: sortBy ? orderBy : { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        password: true,
+        email: true,
+        passcode: true,
+        wallet: true,
+        verified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    const total = await this.prisma.seller.count({ where });
+
+    return {
+      data: sellers,
+      total,
+      page,
+      limit: take,
+      totalPages: Math.ceil(total / take),
+    };
   }
-
-  const orderBy: any = {};
-  if (sortBy) {
-    orderBy[sortBy] = sortOrder || 'asc';
-  }
-
-  const sellers = await this.prisma.seller.findMany({
-    where,
-    skip,
-    take,
-    orderBy: sortBy ? orderBy : { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      phone: true,
-      password: true,
-      email: true,
-      passcode: true,
-      wallet: true,
-      verified: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
-  const total = await this.prisma.seller.count({ where });
-
-  return {
-    data: sellers,
-    total,
-    page,
-    limit: take,
-    totalPages: Math.ceil(total / take),
-  };
-}
 
   async post(data: CreateSellerDto) {
-  const hashedPassword = bcrypt.hashSync(data.password, 10);
+    const hashedPassword = bcrypt.hashSync(data.password, 10);
 
-  const newSeller = await this.prisma.seller.create({
-    data: {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      password: hashedPassword, 
-      passcode: data.passcode,
-      wallet: data.wallet,
-    },
-  });
+    const newSeller = await this.prisma.seller.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: hashedPassword,
+        passcode: data.passcode,
+        wallet: data.wallet,
+      },
+    });
 
-  return newSeller;
-}
+    return newSeller;
+  }
 
   async login(data: LoginSellerDto) {
     console.log(data);
-    
+
     const { email, password } = data;
-    let seller = await this.prisma.seller.findUnique({ where: { email } });
+    let seller = await this.prisma.seller.findUnique({ where: { email: data.email } });
     if (!seller) throw new NotFoundException('seller not found');
 
     let match = bcrypt.compareSync(password, seller.password);
     if (!match) throw new NotFoundException('wrong password');
 
-    let token = this.jwt.sign({ id: seller.id, email: seller.email });
+    let token = this.jwt.sign({ id: seller.id, email: seller.email, role: seller.role });
     return { token };
   }
 
@@ -202,6 +202,24 @@ export class SellerService {
     }
   }
 
+  async update(id: string, data: UpdateSellerDto) {
+    try {
+      const existing = await this.prisma.seller.findUnique({ where: { id } });
+      if (!existing) {
+        throw new NotFoundException('Yangilamoqchi bo‘lgan seller topilmadi');
+      }
+
+      if (data.password) {
+        const salt = await bcrypt.genSalt(10);
+        data.password = await bcrypt.hash(data.password, salt);
+      }
+
+      return await this.prisma.seller.update({ where: { id }, data });
+    } catch (error) {
+      throw new BadRequestException('Yangilashda xatolik: ' + error.message);
+    }
+  }
+
   async remove(id: string) {
     const seller = await this.prisma.seller.findUnique({
       where: { id },
@@ -213,6 +231,6 @@ export class SellerService {
       where: { id },
     });
 
-    return {message:"This seller deleted",deleted};
+    return { message: "This seller deleted", deleted };
   }
 }

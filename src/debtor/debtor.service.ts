@@ -6,50 +6,59 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class DebtorService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  async create(data: CreateDebtorDto) {
+  async create(data: CreateDebtorDto, sellerId: string) {
     try {
       return await this.prisma.debtor.create({
-         data,
-         include:{
-          ImagesOfDebtor:true,
-          NumberOfDebtor:true
-         }
-        });
+        data: {
+          fullname: data.fullname,
+          address: data.address,
+          note: data.note,
+          Seller: {
+            connect: {
+              id: sellerId,
+            },
+          },
+        },
+        include: {
+          ImagesOfDebtor: true,
+          NumberOfDebtor: true
+        }
+      });
     } catch (error) {
       throw new BadRequestException('Yaratishda xatolik: ' + error.message);
     }
   }
 
- async findAll(filter: string, page: number, limit: number) {
-  const where: Prisma.DebtorWhereInput | undefined = filter
-    ? {
+  async findAll(filter: string, page: number, limit: number) {
+    const where: Prisma.DebtorWhereInput | undefined = filter
+      ? {
         OR: [
           { fullname: { contains: filter, mode: 'insensitive' } },
           { address: { contains: filter, mode: 'insensitive' } },
         ],
       }
-    : undefined;
+      : undefined;
 
-  const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-  const debtors = await this.prisma.debtor.findMany({
-    where,
-    skip,
-    take: limit,
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+    const debtors = await this.prisma.debtor.findMany({
+      include:{
+        ImagesOfDebtor:true,
+        NumberOfDebtor:true
+      },
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-  return debtors;
-}
-
-
-
-
-
+    return debtors;
+  }
+  
   async findOne(id: string) {
     try {
       const debtor = await this.prisma.debtor.findUnique({ where: { id } });

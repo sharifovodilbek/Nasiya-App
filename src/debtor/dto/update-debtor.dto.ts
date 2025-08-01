@@ -15,7 +15,4 @@ export class UpdateDebtorDto extends PartialType(CreateDebtorDto) {
     @IsString()
     note?: string
 
-    @ApiProperty()
-    @IsString()
-    sellerId?: string
 }

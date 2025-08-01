@@ -12,9 +12,5 @@ export class CreateDebtorDto {
 
     @ApiProperty({example:"this note is about debtor"})
     @IsString()
-    note: string
-    
-    @ApiProperty({example:"string"})
-    @IsString()
-    sellerId: string
+    note: string   
 }
