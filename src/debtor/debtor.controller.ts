@@ -26,15 +26,17 @@ export class DebtorController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'filter', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
   @Get()
   findAll(
-    @Query('filter') filter: string = '',
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+    @Query('filter') filter: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('sortBy') sortBy: string,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
   ) {
-    const parsedPage = Number(page) || 1;
-    const parsedLimit = Number(limit) || 10;
-    return this.debtorService.findAll(filter, parsedPage, parsedLimit);
+    return this.debtorService.findAll(filter, page, limit, sortBy, sortOrder);
   }
 
   @Get(':id')

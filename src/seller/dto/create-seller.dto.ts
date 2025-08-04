@@ -22,9 +22,8 @@ export class CreateSellerDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: "1500.10" })
+  @ApiProperty({ example: "15000000" })
   @IsNumber()
   wallet: number;
 
-  
 }

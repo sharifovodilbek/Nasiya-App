@@ -36,40 +36,45 @@ model Debtor {
   Payment        Payment[]
   NumberOfDebtor NumberOfDebtor[]
   ImagesOfDebtor ImageOfDebtor[]
+  paymentHistory paymentHistory[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
 
 model Seller {
-  id          String    @id @default(uuid())
-  name        String
-  email       String    @unique
-  phone       String    @unique
-  password    String
-  passcode    Int
-  wallet      Int
-  role        Role      @default(SELLER)
-  resetOtp    String?
-  resetOtpExp DateTime?
-  verified    Boolean   @default(false)
-  Sample      Sample[]
-  Debtor      Debtor[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  phone         String          @unique
+  password      String
+  passcode      Int
+  wallet        Int
+  role          Role            @default(SELLER)
+  resetOtp      String?
+  resetOtpExp   DateTime?
+  verified      Boolean         @default(false)
+  Sample        Sample[]
+  Debtor        Debtor[]
+  ImageOfDebtor ImageOfDebtor[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model Debt {
-  id           String        @id @default(uuid())
-  name         String
-  startDate    String
-  term         String
-  note         String
-  debtorId     String
-  Debtor       Debtor        @relation(fields: [debtorId], references: [id])
-  Payments     Payment[]
-  ImagesOfDebt ImageOfDebt[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String           @id @default(uuid())
+  name           String
+  startDate      String
+  term           String
+  note           String
+  total          Int
+  monthlyPayment Int              
+  debtorId       String
+  Debtor         Debtor           @relation(fields: [debtorId], references: [id])
+  Payments       Payment[]
+  ImagesOfDebt   ImageOfDebt[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  paymentHistory paymentHistory[]
 }
 
 model Payment {
@@ -83,18 +88,30 @@ model Payment {
   Debt       Debt   @relation(fields: [debtId], references: [id])
 }
 
+model paymentHistory {
+  id       String   @id @default(uuid())
+  Debt     Debt     @relation(fields: [debtId], references: [id])
+  Debtor   Debtor   @relation(fields: [debtorId], references: [id])
+  amount   Int
+  debtorId String
+  createAt DateTime @default(now())
+  debtId   String
+}
+
 model Sample {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   note     String
+  isActive Boolean @default(true)
   sellerId String
-  seller   Seller @relation(fields: [sellerId], references: [id])
+  seller   Seller  @relation(fields: [sellerId], references: [id])
 }
 
 model Sms {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   text     String
+  isSend   Boolean @default(true)
   debtorId String
-  debtor   Debtor @relation(fields: [debtorId], references: [id])
+  debtor   Debtor  @relation(fields: [debtorId], references: [id])
 }
 
 model NumberOfDebtor {
@@ -111,6 +128,8 @@ model ImageOfDebtor {
   image     String
   debtorId  String
   debtor    Debtor   @relation(fields: [debtorId], references: [id])
+  sellerId  String
+  Seller    Seller   @relation(fields: [sellerId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

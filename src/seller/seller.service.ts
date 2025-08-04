@@ -57,7 +57,6 @@ export class SellerService {
         email: true,
         passcode: true,
         wallet: true,
-        verified: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -85,7 +84,19 @@ export class SellerService {
         password: hashedPassword,
         passcode: data.passcode,
         wallet: data.wallet,
+
       },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        password: true,
+        passcode: true,
+        wallet: true,
+        createdAt: true,
+        updatedAt: true
+
+      }
     });
 
     return newSeller;
@@ -218,6 +229,92 @@ export class SellerService {
     } catch (error) {
       throw new BadRequestException('Yangilashda xatolik: ' + error.message);
     }
+  }
+
+  async totalMonth(sellerId: string) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const debtors = await this.prisma.debtor.findMany({
+      where: {
+        sellerId,
+        createdAt: {
+          gte: startOfMonth,
+          lte: now,
+        },
+      },
+      include: {
+        Debt: {
+          where: {
+            createdAt: {
+              gte: startOfMonth,
+              lte: now,
+            },
+          },
+          select: {
+            monthlyPayment: true,
+            createdAt: true,
+          },
+        },
+        NumberOfDebtor: {
+          select: {
+            number: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    let totalAmount = 0;
+
+    const debtorDetails = debtors.map((debtor) => {
+      const debtorTotalDebt = debtor.Debt.reduce(
+        (sum, bp) => sum + bp.monthlyPayment,
+        0,
+      );
+      totalAmount += debtorTotalDebt;
+
+      const phoneNumbers = debtor.NumberOfDebtor.map((pn) => pn.number);
+
+      return {
+        id: debtor.id,
+        fullname: debtor.fullname,
+        phoneNumbers,
+        totalDebt: debtorTotalDebt,
+      };
+    });
+
+    return {
+      sellerId,
+      thisMonthDebtorsCount: debtorDetails.length,
+      thisMonthTotalAmount: totalAmount,
+      debtors: debtorDetails,
+    };
+  }
+
+   async payment(money: number, sellerId: string) {
+    const seller = await this.prisma.seller.findUnique({
+      where: { id: sellerId },
+      select: { wallet: true },
+    });
+
+    if (!seller) {
+      throw new NotFoundException('Seller topilmadi');
+    }
+
+    const updatedSeller = await this.prisma.seller.update({
+      where: { id: sellerId },
+      data: {
+        wallet: seller.wallet + money,
+      },
+    });
+
+    return {
+      message: 'Hisobingiz muvaffaqiyatli to‘ldirildi',
+      wallet: updatedSeller.wallet,
+    };
   }
 
   async remove(id: string) {

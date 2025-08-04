@@ -23,9 +23,7 @@ export class RoleGuard implements CanActivate {
     const user = request.user;
     console.log(user);
 
-    if (!request.user) {
-      console.log(user);
-      
+    if (!request.user) {      
       throw new UnauthorizedException('User not found in request');
     }
 

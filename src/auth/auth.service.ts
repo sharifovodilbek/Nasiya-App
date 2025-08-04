@@ -4,7 +4,6 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -44,54 +43,55 @@ export class AuthService {
     return { message: 'Succesfully login', token };
   }
 
-  async getAllAdmins(query: {
-    search?: string;
-    sortBy?: 'name' | 'email' | 'createdAt';
-    sortOrder?: 'asc' | 'desc';
-    page?: number;
-    limit?: number;
-  }) {
-    const {
-      search = '',
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      page = 1,
-      limit = 10,
-    } = query;
+   async findAll(
+    filter: string,
+    page: number,
+    limit: number,
+    sortBy: string,
+    sortOrder: 'asc' | 'desc',
+  ) {
+    const take = Number(limit) || 10
+    const skip = page ? (page - 1) * take : 0;
 
-    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (filter) {
+      where.OR = [
+        { name: { contains: filter, mode: 'insensitive' } },
+        { phone: { contains: filter, mode: 'insensitive' } },
+        { email: { contains: filter, mode: 'insensitive' } },
+      ];
+    }
 
-    const admins = await this.prisma.admin.findMany({
-      where: {
-        role: 'ADMIN',
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ],
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+    const orderBy: any = {};
+    if (sortBy) {
+      orderBy[sortBy] = sortOrder || 'asc';
+    }
+
+    const user = await this.prisma.admin.findMany({
+      where,
       skip,
-      take: limit,
-    });
-
-    const total = await this.prisma.admin.count({
-      where: {
-        role: 'ADMIN',
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ],
+      take,
+      orderBy: sortBy ? orderBy : { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        password: true,
+        email: true,
+        role:true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
+
+    const total = await this.prisma.admin.count({ where });
 
     return {
-      data: admins,
-      page,
-      limit,
+      data: user,
       total,
-      totalPages: Math.ceil(total / limit),
+      page,
+      limit: take,
+      totalPages: Math.ceil(total / take),
     };
   }
 

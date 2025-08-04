@@ -14,7 +14,7 @@ import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Auth (Admin)')
 @Controller('auth')
@@ -31,15 +31,20 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Get('admins')
-  getAllAdmins(@Query() query: {
-    search?: string;
-    sortBy?: 'name' | 'email' | 'createdAt';
-    sortOrder?: 'asc' | 'desc';
-    page?: number;
-    limit?: number;
-  }) {
-    return this.authService.getAllAdmins(query);
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'filter', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
+  @Get()
+  findAll(
+    @Query('filter') filter: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('sortBy') sortBy: string,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
+  ) {
+    return this.authService.findAll(filter, page, limit, sortBy, sortOrder);
   }
 
 
