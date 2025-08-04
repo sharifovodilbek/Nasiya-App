@@ -4,6 +4,7 @@ import { UpdateDebtorDto } from './dto/update-debtor.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { IsPhoneNumber } from 'class-validator';
+import { tr } from 'date-fns/locale';
 
 @Injectable()
 export class DebtorService {
@@ -92,6 +93,16 @@ export class DebtorService {
           select: {
             number: true
           }
+        },
+        Debt:{
+          select:{
+            id:true,
+            name:true,
+            startDate:true,
+            term:true,
+            total:true,
+            monthlyPayment:true,
+          }
         }
       },
       where,
@@ -172,7 +183,6 @@ export class DebtorService {
     throw new BadRequestException('Yangilashda xatolik: ' + error.message);
   }
 }
-
 
   async remove(id: string) {
     try {

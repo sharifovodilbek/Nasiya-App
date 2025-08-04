@@ -26,7 +26,7 @@ export class PaymentsService {
 
     if (debt.total < debt.monthlyPayment) {
       throw new BadRequestException(
-        `O'rtacha oylik to'lovidan kamroq qarzingiz bor!`,
+        `O'rtacha oylik to'lovidan kamroq qarzingiz bor,Iltimos availableMonths bo'limidan mavjud qarzingizni tekshirib qaytadan to'lov qiling!`,
       );
     }
 
@@ -139,7 +139,7 @@ export class PaymentsService {
       );
 
       return {
-        message: `To'lov qabul qilindi. ${remainingMonths} qolgan to'lov oylari`,
+        message: `To'lov qabul qilindi.Yana ${remainingMonths} oylik to'lov oylari mavjud!`,
         remainingAmount: newTotal,
       };
     }
@@ -244,7 +244,7 @@ export class PaymentsService {
     const message =
       newTotal <= 0
         ? 'To\'lov yakunlandi!'
-        : `${remainingMonthsAfterPayment} qolgan to'lov oylari`;
+        : `Yana ${remainingMonthsAfterPayment} oylik to'lov oylari mavjud!`;
 
     return {
       message,

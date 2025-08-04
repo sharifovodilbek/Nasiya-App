@@ -1,16 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsNumber, IsOptional, IsString } from "class-validator"
+import { IsArray, IsDateString, IsNumber, IsOptional, IsString } from "class-validator"
 
 export class CreateDebtDto {
     @ApiProperty({ example: "Test Sinov" })
     @IsString()
     name: string
-    @ApiProperty({example:"10000000"})
+    @ApiProperty({example:"1000000", type:Number})
     @IsNumber()
     total:number
-    @ApiProperty({ example: "10.10.2024" })
-    @IsString()
-    startDate: string
+    @ApiProperty({ example: "2025-08-04T07:28:28.537Z" })
+    @IsDateString()
+    startDate: Date
     @ApiProperty({ example: "1 oy" })
     @IsString()
     term: string

@@ -2,43 +2,44 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateDebtDto } from './dto/create-debt.dto';
 import { UpdateDebtDto } from './dto/update-debt.dto';
-import { data } from 'react-router-dom';
-import { connect } from 'http2';
 
 @Injectable()
 export class DebtService {
   constructor(private readonly prisma: PrismaService) { }
 
- async create(dto: CreateDebtDto) {
+  async create(dto: CreateDebtDto) {
     const debtor = await this.prisma.debtor.findUnique({
       where: { id: dto.debtorId },
     });
+
     if (!debtor) {
       throw new BadRequestException('Debtor id not found!');
     }
 
-    const createAt = new Date();
-    const termDate = new Date(dto.term);
-
-    if (termDate <= createAt) {
-      throw new BadRequestException('Term date must be in the future');
+    const startDate = new Date(dto.startDate);
+    if (isNaN(startDate.getTime())) {
+      throw new BadRequestException('Invalid startDate format');
     }
 
-    const monthsDiff =
-      (termDate.getFullYear() - createAt.getFullYear()) * 12 +
-      (termDate.getMonth() - createAt.getMonth());
-
-    if (monthsDiff <= 0) {
-      throw new BadRequestException('Term difference must be at least 1 month');
+    const monthMatch = dto.term.match(/\d+/);
+    if (!monthMatch) {
+      throw new BadRequestException('Term must contain a number (e.g., "3 oy")');
+    }
+    const termMonths = parseInt(monthMatch[0], 10);
+    if (termMonths <= 0) {
+      throw new BadRequestException('Term must be at least 1 month');
     }
 
-    const monthlyPayment = Math.ceil(dto.total / monthsDiff);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + termMonths);
+
+    const monthlyPayment = Math.ceil(dto.total / termMonths);
 
     const debt = await this.prisma.debt.create({
       data: {
-        startDate:dto.startDate,
         name: dto.name,
-        term: termDate.toISOString(),
+        startDate: startDate,
+        term: dto.term,
         total: dto.total,
         note: dto.note,
         debtorId: dto.debtorId,
@@ -64,16 +65,24 @@ export class DebtService {
 
     const fullBorrowedProduct = await this.prisma.debt.findUnique({
       where: { id: debt.id },
-      include: {
-        Debtor: true,
-        ImagesOfDebt: true,
+      select: {
+        Debtor: {
+          select: {
+            fullname: true,
+            address: true,
+            note: true
+          }
+        },
+        ImagesOfDebt: {
+          select: {
+            image: true
+          }
+        }
       },
     });
 
     return fullBorrowedProduct;
   }
-
-
 
   async findAll(
     filter: string,
@@ -111,14 +120,21 @@ export class DebtService {
         term: true,
         note: true,
         debtorId: true,
-        paymentHistory:true,
+        paymentHistory: true,
         createdAt: true,
         updatedAt: true,
+        Debtor: {
+          select: {
+            fullname: true,
+            address: true,
+            note: true
+          }
+        },
         ImagesOfDebt: {
           select: {
             image: true
           }
-        }
+        },
       },
     });
 
@@ -136,8 +152,19 @@ export class DebtService {
   async findOne(id: string) {
     const debt = await this.prisma.debt.findUnique({
       where: { id },
-      include: {
-        ImagesOfDebt: true
+      select: {
+        Debtor: {
+          select: {
+            fullname: true,
+            address: true,
+            note: true
+          }
+        },
+        ImagesOfDebt: {
+          select: {
+            image: true
+          }
+        },
       }
     },
     );
@@ -148,52 +175,66 @@ export class DebtService {
   }
 
   async update(id: string, data: UpdateDebtDto) {
-  const existing = await this.prisma.debt.findUnique({ where: { id } });
+    const existing = await this.prisma.debt.findUnique({ where: { id } });
 
-  if (!existing) {
-    throw new NotFoundException("Yangilamoqchi bo'lgan debt topilmadi");
-  }
+    if (!existing) {
+      throw new NotFoundException("Yangilamoqchi bo'lgan debt topilmadi");
+    }
 
-  if (data.debtorId) {
-  const debtor = await this.prisma.debtor.findUnique({
-    where: { id: data.debtorId }
-  });
-  if (!debtor) {
-    throw new BadRequestException('Berilgan debtorId bo‘yicha qarzdor topilmadi');
-  }
-}
-
-
-  const updated = await this.prisma.debt.update({
-    where: { id },
-    data: {
-      name: data.name,
-      startDate: data.startDate,
-      term: data.term,
-      note: data.note,
-      Debtor: {
-        connect: { id: data.debtorId }
+    if (data.debtorId) {
+      const debtor = await this.prisma.debtor.findUnique({
+        where: { id: data.debtorId }
+      });
+      if (!debtor) {
+        throw new BadRequestException('Berilgan debtorId bo‘yicha qarzdor topilmadi');
       }
     }
-  });
 
-  return updated;
-}
+    const total = data.total ?? existing.total;
+    const term = data.term ?? existing.term;
+
+    const numericTerm = parseInt(term.toString());
+
+    if (isNaN(numericTerm) || numericTerm <= 0) {
+      throw new BadRequestException('Term noto‘g‘ri formatda. Masalan: "3 oy" bo‘lishi kerak');
+    }
+
+    const monthlyPayment = Math.round(total / numericTerm);
+
+    const updated = await this.prisma.debt.update({
+      where: { id },
+      data: {
+        name: data.name,
+        startDate: data.startDate,
+        term: term,
+        total: total,
+        monthlyPayment: monthlyPayment,
+        note: data.note,
+        Debtor: data.debtorId
+          ? { connect: { id: data.debtorId } }
+          : undefined
+      }
+    });
+
+    return updated;
+  }
+
+
 
 
   async remove(id: string) {
-  const existing = await this.prisma.debt.findUnique({ where: { id } });
-  if (!existing) {
-    throw new NotFoundException("O'chirmoqchi bo'lgan debt topilmadi");
+    const existing = await this.prisma.debt.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException("O'chirmoqchi bo'lgan debt topilmadi");
+    }
+
+    await this.prisma.imageOfDebt.deleteMany({
+      where: { debtId: id }
+    });
+
+    return await this.prisma.debt.delete({
+      where: { id }
+    });
   }
-
-  await this.prisma.imageOfDebt.deleteMany({
-    where: { debtId: id }
-  });
-
-  return await this.prisma.debt.delete({
-    where: { id }
-  });
-}
 
 }

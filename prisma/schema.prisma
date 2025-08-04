@@ -63,7 +63,7 @@ model Seller {
 model Debt {
   id             String           @id @default(uuid())
   name           String
-  startDate      String
+  startDate      DateTime     @default(now())
   term           String
   note           String
   total          Int
