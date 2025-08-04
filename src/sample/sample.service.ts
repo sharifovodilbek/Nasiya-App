@@ -75,7 +75,7 @@ export class SampleService {
 
   async update(id: string, data: UpdateSampleDto) {
     const existing = await this.prisma.sample.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Yangilamoqchi bo‘lgan sample topilmadi');
+    if (!existing) throw new NotFoundException('Yangilamoqchi bo\'lgan sample topilmadi');
 
     try {
       return await this.prisma.sample.update({
@@ -89,12 +89,12 @@ export class SampleService {
 
   async remove(id: string) {
     const existing = await this.prisma.sample.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('O‘chirilmoqchi bo‘lgan sample topilmadi');
+    if (!existing) throw new NotFoundException('O\'chirilmoqchi bo\'lgan sample topilmadi');
 
     try {
       return await this.prisma.sample.delete({ where: { id } });
     } catch (error) {
-      throw new BadRequestException('O‘chirishda xatolik: ' + error.message);
+      throw new BadRequestException('O\'chirishda xatolik: ' + error.message);
     }
   }
 }

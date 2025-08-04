@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body,Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { SmsService } from './sms.service';
 import { CreateSmDto } from './dto/create-sm.dto';
 import { UpdateSmDto } from './dto/update-sm.dto';
@@ -12,9 +12,12 @@ import { RoleGuard } from 'src/guards/role.guard';
 export class SmsController {
   constructor(private readonly smsService: SmsService) { }
 
+  @RoleD(Role.SELLER)
   @Post()
-  create(@Body() data: CreateSmDto) {
-    return this.smsService.create(data);
+  @UseGuards(AuthGuard, RoleGuard)
+  create(@Body() data: CreateSmDto, @Req() req: Request) {
+    const sellerId = (req as any).user.id;
+    return this.smsService.create(data, sellerId);
   }
 
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -33,20 +36,16 @@ export class SmsController {
     return this.smsService.findAll(filter, page, limit, sortBy, sortOrder);
   }
 
+  @RoleD(Role.SELLER)
   @Get(':id')
+  @UseGuards(AuthGuard, RoleGuard)
   findOne(@Param('id') id: string) {
     return this.smsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateSampleDto: UpdateSmDto,
-  ) {
-    return this.smsService.update(id, updateSampleDto);
-  }
-
+  @RoleD(Role.SELLER)
   @Delete(':id')
+  @UseGuards(AuthGuard, RoleGuard)
   remove(@Param('id') id: string) {
     return this.smsService.remove(id);
   }

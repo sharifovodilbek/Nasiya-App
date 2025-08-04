@@ -219,9 +219,6 @@ export class DebtService {
     return updated;
   }
 
-
-
-
   async remove(id: string) {
     const existing = await this.prisma.debt.findUnique({ where: { id } });
     if (!existing) {

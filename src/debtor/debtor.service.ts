@@ -172,12 +172,11 @@ export class DebtorService {
       });
     }
 
-    // Faqat debtor jadvalidagi fieldlarni ajratib olish
     const { images, phoneNumbers, ...debtorFields } = data;
 
     return await this.prisma.debtor.update({
       where: { id },
-      data: debtorFields, // bu yerda faqat kerakli fieldlar bo‘ladi
+      data: debtorFields, 
     });
   } catch (error) {
     throw new BadRequestException('Yangilashda xatolik: ' + error.message);

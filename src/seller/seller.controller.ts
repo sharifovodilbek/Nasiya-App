@@ -24,7 +24,9 @@ export class SellerController {
   @ApiQuery({ name: 'filter', required: false, type: String })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
+  @RoleD(Role.ADMIN)
   @Get()
+  @UseGuards(AuthGuard, RoleGuard)
   findAll(
     @Query('filter') filter: string,
     @Query('page') page: number = 1,

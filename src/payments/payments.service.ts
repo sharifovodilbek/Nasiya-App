@@ -180,6 +180,7 @@ export class PaymentsService {
       remainingMonths,
     };
   }
+  
   async forFewMonths(dto: MultiMonthPayDto, SellerId: string) {
     const debt = await this.prisma.debt.findUnique({
       where: { id: dto.debtId },

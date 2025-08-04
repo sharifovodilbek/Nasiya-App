@@ -7,12 +7,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class SmsService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async create(data: CreateSmDto) {
+  async create(data: CreateSmDto, sellerId: string) {
     try {
       return await this.prisma.sms.create({
         data: {
           text: data.text,
-          debtorId:data.debtorId
+          debtorId: data.debtorId,
+          sellerId
         },
       });
     } catch (error) {
@@ -71,28 +72,14 @@ export class SmsService {
     return sms;
   }
 
-  async update(id: string, data: UpdateSmDto) {
-    const existing = await this.prisma.sms.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('Yangilamoqchi bo‘lgan sms topilmadi');
-
-    try {
-      return await this.prisma.sms.update({
-        where: { id },
-        data,
-      });
-    } catch (error) {
-      throw new BadRequestException('Yangilashda xatolik: ' + error.message);
-    }
-  }
-
   async remove(id: string) {
     const existing = await this.prisma.sms.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('O‘chirilmoqchi bo‘lgan sms topilmadi');
+    if (!existing) throw new NotFoundException('O\'chirilmoqchi bo\'lgan sms topilmadi');
 
     try {
       return await this.prisma.sms.delete({ where: { id } });
     } catch (error) {
-      throw new BadRequestException('O‘chirishda xatolik: ' + error.message);
+      throw new BadRequestException('O\'chirishda xatolik: ' + error.message);
     }
   }
 }
