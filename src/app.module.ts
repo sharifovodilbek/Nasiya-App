@@ -12,7 +12,7 @@ import { MulterModule } from './multer/multer.module';
 import { PaymentsModule } from './payments/payments.module';
 
 @Module({
-  imports: [AuthModule,PrismaModule, SellerModule, DebtorModule, DebtModule, SellerModule, SampleModule, SmsModule, MulterModule, PaymentsModule],
+  imports: [AuthModule,PrismaModule,SellerModule,DebtorModule, DebtModule,PaymentsModule,SampleModule, SmsModule, MulterModule],
   controllers: [AppController],
   providers: [AppService],
 })

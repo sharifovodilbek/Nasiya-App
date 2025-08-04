@@ -151,7 +151,7 @@ export class DebtorService {
     });
 
     if (debts.length > 0) {
-      throw new BadRequestException('Bu qarzdorning qarzlari mavjudligi sababli o‘chirib bo‘lmaydi');
+      throw new BadRequestException('Bu qarzdorning qarzlari mavjudligi sababli o\'chirib bo\'lmaydi');
     }
 
     if (data.images && data.images.length > 0) {
@@ -194,8 +194,11 @@ export class DebtorService {
       });
 
       if (debts.length > 0) {
-        throw new BadRequestException('Bu qarzdorning qarzlari mavjudligi sababli o‘chirib bo‘lmaydi');
+        throw new BadRequestException('Bu qarzdorning qarzlari mavjudligi sababli o\'chirib bo\'lmaydi');
       }
+      await this.prisma.sms.deleteMany({
+        where: { debtorId: id }
+      })
 
       await this.prisma.imageOfDebtor.deleteMany({
         where: { debtorId: id }

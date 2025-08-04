@@ -224,14 +224,21 @@ export class DebtService {
     if (!existing) {
       throw new NotFoundException("O'chirmoqchi bo'lgan debt topilmadi");
     }
+    await this.prisma.paymentHistory.deleteMany({
+      where: { debtId: id },
+    });
 
     await this.prisma.imageOfDebt.deleteMany({
       where: { debtId: id }
     });
 
-    return await this.prisma.debt.delete({
-      where: { id }
+    const data = await this.prisma.debt.delete({
+      where: { id },
     });
-  }
 
+    return {
+      message: 'Debt o\'chirildi!',
+      data: data
+    }
+  }
 }
