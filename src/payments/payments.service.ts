@@ -9,24 +9,24 @@ import { MultiMonthPayDto } from './dto/MultiMonthlyPaydto';
 export class PaymentsService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async oneMonthPay(dto: CreatePaymentDto, SellerId: string) {
+  async forOneMonth(dto: CreatePaymentDto, SellerId: string) {
     const debt = await this.prisma.debt.findUnique({
       where: { id: dto.debtId },
     });
 
     if (!debt) {
-      throw new NotFoundException('Borrowed product not found');
+      throw new NotFoundException('Debt topilmadi');
     }
 
     if (debt.total <= 0) {
       throw new BadRequestException(
-        'This product is already fully paid. Further payments are not allowed.',
+        'To\'lov yakunlangan!',
       );
     }
 
     if (debt.total < debt.monthlyPayment) {
       throw new BadRequestException(
-        `Remaining amount is less than a month's payment. Please use "Pay As You Wish" option.`,
+        `O'rtacha oylik to'lovidan kamroq qarzingiz bor!`,
       );
     }
 
@@ -57,7 +57,7 @@ export class PaymentsService {
 
       return {
         message:
-          'Payment completed. Total amount is now 0 sum. No further payments are allowed.',
+          'Debt has already been paid!',
       };
     } else {
       await this.prisma.debt.update({
@@ -65,13 +65,13 @@ export class PaymentsService {
         data: { total: newTotal },
       });
       return {
-        message: 'One month payment successful',
+        message: '1 oyga muvaffaqiyatli tolov qildingiz',
         remainingAmount: newTotal,
       };
     }
   }
 
-  async payAsYouWish(dto: PayAsYouWishDto, SellerId: string) {
+  async inAnyAmount(dto: PayAsYouWishDto, SellerId: string) {
     const debt = await this.prisma.debt.findUnique({
       where: { id: dto.debtId },
       include: {
@@ -80,22 +80,22 @@ export class PaymentsService {
     });
 
     if (!debt) {
-      throw new NotFoundException('Borrowed product not found');
+      throw new NotFoundException('Debt not found');
     }
 
     if (debt.total <= 0) {
       throw new BadRequestException(
-        `This product is already fully paid. Total amount is 0 sum.`,
+        `Bu Debt to'lab bo'lingan!`,
       );
     }
 
     if (dto.amount <= 0) {
-      throw new BadRequestException('Amount must be greater than 0');
+      throw new BadRequestException('Musbat miqdorda pul kiriting');
     }
 
     if (dto.amount > debt.total) {
       throw new BadRequestException(
-        `You cannot pay more than ${debt.total} sum`,
+        `Siz to'lashingiz kerak bo'lgan miqdor: ${debt.total} so'm`,
       );
     }
 
@@ -126,7 +126,7 @@ export class PaymentsService {
 
       return {
         message:
-          'Payment completed. The total amount is now 0 sum. Further payments are not allowed.',
+          'Debt has already been paid!',
       };
     } else {
       await this.prisma.debt.update({
@@ -139,7 +139,7 @@ export class PaymentsService {
       );
 
       return {
-        message: `Payment successful. ${remainingMonths} months of payment remaining`,
+        message: `To'lov qabul qilindi. ${remainingMonths} qolgan to'lov oylari`,
         remainingAmount: newTotal,
       };
     }
@@ -151,18 +151,18 @@ export class PaymentsService {
     });
 
     if (!debt) {
-      throw new NotFoundException('Borrowed product not found');
+      throw new NotFoundException('Debt not found!');
     }
 
     if (debt.debtorId !== dto.debtorId) {
       throw new BadRequestException(
-        'This borrowed product does not belong to the specified debtor',
+        'Bu Debt va Debtor bir biriga mos emas!',
       );
     }
 
     if (debt.total <= 0) {
       return {
-        message: 'This product is fully paid. No remaining payments.',
+        message: 'Debt has already been paid!',
         remainingMonths: 0,
         remainingAmount: 0,
       };
@@ -180,77 +180,77 @@ export class PaymentsService {
       remainingMonths,
     };
   }
-async multiMonthPay(dto: MultiMonthPayDto, SellerId: string) {
-  const debt = await this.prisma.debt.findUnique({
-    where: { id: dto.debtId },
-  });
+  async forFewMonths(dto: MultiMonthPayDto, SellerId: string) {
+    const debt = await this.prisma.debt.findUnique({
+      where: { id: dto.debtId },
+    });
 
-  if (!debt) {
-    throw new NotFoundException('Borrowed product not found');
-  }
+    if (!debt) {
+      throw new NotFoundException('Borrowed product not found');
+    }
 
-  if (debt.debtorId !== dto.debtorId) {
-    throw new BadRequestException(
-      'This borrowed product does not belong to the specified debtor',
+    if (debt.debtorId !== dto.debtorId) {
+      throw new BadRequestException(
+        'Bu Debt va Debtor bir biriga mos emas!',
+      );
+    }
+
+    if (debt.total <= 0) {
+      throw new BadRequestException(
+        'Bu to\'lov yakunlangan.',
+      );
+    }
+
+    const remainingMonths = Math.ceil(
+      debt.total / debt.monthlyPayment,
     );
-  }
 
-  if (debt.total <= 0) {
-    throw new BadRequestException(
-      'This product is already fully paid. Further payments are not allowed.',
-    );
-  }
+    if (dto.monthsToPay > remainingMonths) {
+      throw new BadRequestException(
+        ` Xatolik! Siz faqat ${remainingMonths} oy to'lov qilishingiz kerak `,
+      );
+    }
 
-  const remainingMonths = Math.ceil(
-    debt.total / debt.monthlyPayment,
-  );
+    const totalPayment = dto.monthsToPay * debt.monthlyPayment;
 
-  if (dto.monthsToPay > remainingMonths) {
-    throw new BadRequestException(
-      `You cannot pay more than ${remainingMonths} months. Only ${remainingMonths} months are left.`,
-    );
-  }
-
-  const totalPayment = dto.monthsToPay * debt.monthlyPayment;
-
-  await this.prisma.paymentHistory.create({
-    data: {
-      debtId: dto.debtId,
-      debtorId: dto.debtorId,
-      amount: totalPayment,
-    },
-  });
-
-  await this.prisma.seller.update({
-    where: { id: SellerId },
-    data: {
-      wallet: {
-        increment: totalPayment,
+    await this.prisma.paymentHistory.create({
+      data: {
+        debtId: dto.debtId,
+        debtorId: dto.debtorId,
+        amount: totalPayment,
       },
-    },
-  });
+    });
 
-  const newTotal = debt.total - totalPayment;
+    await this.prisma.seller.update({
+      where: { id: SellerId },
+      data: {
+        wallet: {
+          increment: totalPayment,
+        },
+      },
+    });
 
-  await this.prisma.debt.update({
-    where: { id: dto.debtId },
-    data: { total: newTotal },
-  });
+    const newTotal = debt.total - totalPayment;
 
-  const remainingMonthsAfterPayment = Math.ceil(
-    newTotal / debt.monthlyPayment,
-  );
+    await this.prisma.debt.update({
+      where: { id: dto.debtId },
+      data: { total: newTotal },
+    });
 
-  const message =
-    newTotal <= 0
-      ? 'Payment completed. Total amount is now 0 sum.'
-      : `Payment successful. ${remainingMonthsAfterPayment} months of payment remaining`;
+    const remainingMonthsAfterPayment = Math.ceil(
+      newTotal / debt.monthlyPayment,
+    );
 
-  return {
-    message,
-    remainingAmount: newTotal,
-    remainingMonths: remainingMonthsAfterPayment,
-  };
-}
+    const message =
+      newTotal <= 0
+        ? 'To\'lov yakunlandi!'
+        : `${remainingMonthsAfterPayment} qolgan to'lov oylari`;
+
+    return {
+      message,
+      remainingAmount: newTotal,
+      remainingMonths: remainingMonthsAfterPayment,
+    };
+  }
 
 }

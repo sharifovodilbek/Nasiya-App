@@ -14,32 +14,32 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) { }
 
   @RoleD(Role.SELLER)
-  @Post('one-month-pay')
-  @UseGuards(AuthGuard,RoleGuard)
+  @Post('forOneMonth')
+  @UseGuards(AuthGuard, RoleGuard)
   oneMonthPay(@Body() dto: CreatePaymentDto, @Req() req: Request) {
     const sellerId = (req as any).user.id
-    return this.paymentsService.oneMonthPay(dto, sellerId);
+    return this.paymentsService.forOneMonth(dto, sellerId);
   }
 
   @RoleD(Role.SELLER)
-  @Post('pay-as-you-wish')
-  @UseGuards(AuthGuard,RoleGuard)
+  @Post('inAnyAmount')
+  @UseGuards(AuthGuard, RoleGuard)
   payAsYouWish(@Body() dto: PayAsYouWishDto, @Req() req: Request) {
-   const sellerId = (req as any).user.id
-    return this.paymentsService.payAsYouWish(dto, sellerId);
+    const sellerId = (req as any).user.id
+    return this.paymentsService.inAnyAmount(dto, sellerId);
   }
 
-  @Post('remaining-months')
+  @Post('availableMonths')
   getRemainingMonths(@Body() dto: RemainingMonthsDto) {
     return this.paymentsService.calculateRemainingMonths(dto);
   }
 
 
   @RoleD(Role.SELLER)
-  @Post('multi-month-pay')
-  @UseGuards(AuthGuard,RoleGuard)
+  @Post('forFewMonths')
+  @UseGuards(AuthGuard, RoleGuard)
   multiMonthPay(@Body() dto: MultiMonthPayDto, @Req() req: Request) {
     const sellerId = (req as any).user.id
-    return this.paymentsService.multiMonthPay(dto, sellerId);
+    return this.paymentsService.forFewMonths(dto, sellerId);
   }
 }

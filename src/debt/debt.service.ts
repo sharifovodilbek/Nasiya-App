@@ -111,6 +111,7 @@ export class DebtService {
         term: true,
         note: true,
         debtorId: true,
+        paymentHistory:true,
         createdAt: true,
         updatedAt: true,
         ImagesOfDebt: {

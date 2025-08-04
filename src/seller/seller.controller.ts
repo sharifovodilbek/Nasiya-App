@@ -13,6 +13,7 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { Role } from '@prisma/client';
 import { RoleD } from './decorator';
 import { PaymentDto } from './dto/payment.dto';
+import { LateDebtor } from './dto/deniedPayments.dto';
 
 @Controller('seller')
 export class SellerController {
@@ -36,15 +37,15 @@ export class SellerController {
 
   @RoleD(Role.SELLER)
   @Get('totalMonth')
-  @UseGuards(AuthGuard,RoleGuard)
+  @UseGuards(AuthGuard, RoleGuard)
   totalMonth(@Req() req: Request) {
-   const sellerId = (req as any).user.id;   
+    const sellerId = (req as any).user.id;
     return this.sellerService.totalMonth(sellerId);
   }
 
   @RoleD(Role.SELLER)
   @Post('fillBalance')
-  @UseGuards(AuthGuard,RoleGuard)
+  @UseGuards(AuthGuard, RoleGuard)
   payment(@Body() paymentDto: PaymentDto, @Req() req: Request) {
     const sellerId = (req as any).user.id;
     return this.sellerService.payment(paymentDto.money, sellerId);
@@ -82,10 +83,22 @@ export class SellerController {
     return await this.sellerService.refreshToken(data);
   }
 
+  @RoleD(Role.SELLER)
+  @Get('denied-Payments')
+  @UseGuards(AuthGuard, RoleGuard)
+  deniedPayments(@Req() req: Request): Promise<{
+    sellerId: string;
+    lateDebtorsCount: number;
+    lateDebtors: LateDebtor[];
+  }> {
+    const sellerId = (req as any).user.id;
+    return this.sellerService.DeniedPayments(sellerId);
+  }
+
   @Patch(':id')
-    update(@Param('id') id: string, @Body() data: UpdateSellerDto) {
-      return this.sellerService.update(id, data);
-    }
+  update(@Param('id') id: string, @Body() data: UpdateSellerDto) {
+    return this.sellerService.update(id, data);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

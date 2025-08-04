@@ -10,6 +10,7 @@ import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { VerifyOtpDto } from './dto/verifyOtp.dto';
 import { ResetRequestDto } from './dto/reset-request.dto';
 import { RefreshTokenDto } from './dto/refreshtokenDto';
+import { LateDebtor, LateProduct } from './dto/deniedPayments.dto';
 
 @Injectable()
 export class SellerService {
@@ -294,7 +295,7 @@ export class SellerService {
     };
   }
 
-   async payment(money: number, sellerId: string) {
+  async payment(money: number, sellerId: string) {
     const seller = await this.prisma.seller.findUnique({
       where: { id: sellerId },
       select: { wallet: true },
@@ -329,5 +330,82 @@ export class SellerService {
     });
 
     return { message: "This seller deleted", deleted };
+  }
+
+  async DeniedPayments(sellerId: string): Promise<{
+    sellerId: string;
+    lateDebtorsCount: number;
+    lateDebtors: LateDebtor[];
+  }> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const debtors = await this.prisma.debtor.findMany({
+      where: { sellerId },
+      include: {
+        Debt: {
+          select: {
+            id: true,
+            name: true,
+            term: true,
+            monthlyPayment: true,
+            createdAt: true,
+          },
+        },
+        NumberOfDebtor: {
+          select: { number: true },
+        },
+      },
+    });
+
+    const lateDebtors: LateDebtor[] = [];
+
+    for (const debtor of debtors) {
+      const lateDebt: LateProduct[] = [];
+
+      for (const product of debtor.Debt) {
+        const paymentDueDay = product.createdAt.getDate();
+        const today = now.getDate();
+
+        const isPaymentDayPassed = today >= paymentDueDay;
+
+        const isPaidThisMonth = await this.prisma.paymentHistory.findFirst({
+          where: {
+            debtId: product.id,
+            createAt: {
+              gte: startOfMonth,
+              lte: endOfMonth,
+            },
+          },
+        });
+
+        const hasPaid = !!isPaidThisMonth;
+
+        if (isPaymentDayPassed && !hasPaid) {
+          lateDebt.push({
+            debt: product.id,
+            debtName: product.name,
+            term: product.term,
+            monthlyPayment: product.monthlyPayment
+          });
+        }
+      }
+
+      if (lateDebt.length > 0) {
+        lateDebtors.push({
+          debtorId: debtor.id,
+          debtorName: debtor.fullname,
+          phoneNumbers: debtor.NumberOfDebtor.map((pn) => pn.number),
+          lateDebt,
+        });
+      }
+    }
+
+    return {
+      sellerId,
+      lateDebtorsCount: lateDebtors.length,
+      lateDebtors,
+    };
   }
 }
