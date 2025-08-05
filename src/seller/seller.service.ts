@@ -104,7 +104,6 @@ export class SellerService {
   }
 
   async login(data: LoginSellerDto) {
-    console.log(data);
 
     const { email, password } = data;
     let seller = await this.prisma.seller.findUnique({ where: { email } });
@@ -138,7 +137,6 @@ export class SellerService {
       );
 
     } catch (e) {
-      console.error('Email yuborishda xatolik:', e.message);
       throw new BadRequestException('Email yuborishda xatolik yuz berdi');
     }
 

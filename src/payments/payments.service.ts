@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePaymentDto, PayAsYouWishDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { RemainingMonthsDto } from './dto/RemainingMonths.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MultiMonthPayDto } from './dto/MultiMonthlyPaydto';

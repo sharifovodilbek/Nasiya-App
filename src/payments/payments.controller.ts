@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto, PayAsYouWishDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { RemainingMonthsDto } from './dto/RemainingMonths.dto';
 import { MultiMonthPayDto } from './dto/MultiMonthlyPaydto';
 import { RoleD } from 'src/seller/decorator';

@@ -2,9 +2,6 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { CreateDebtorDto } from './dto/create-debtor.dto';
 import { UpdateDebtorDto } from './dto/update-debtor.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { IsPhoneNumber } from 'class-validator';
-import { tr } from 'date-fns/locale';
 
 @Injectable()
 export class DebtorService {
