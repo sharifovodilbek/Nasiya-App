@@ -317,18 +317,34 @@ export class SellerService {
   }
 
   async remove(id: string) {
-    const seller = await this.prisma.seller.findUnique({
-      where: { id },
-    });
+  const seller = await this.prisma.seller.findUnique({
+    where: { id },
+  });
 
-    if (!seller) throw new NotFoundException('Seller not found');
-
-    const deleted = await this.prisma.seller.delete({
-      where: { id },
-    });
-
-    return { message: "This seller deleted", deleted };
+  if (!seller) {
+    throw new NotFoundException('Seller not found');
   }
+
+  const debtorExists = await this.prisma.debtor.findFirst({
+    where: {
+      sellerId: id,
+    },
+  });
+
+  if (debtorExists) {
+    throw new BadRequestException('Bu sellerga bog‘liq qarzdorlar mavjud. O‘chirish mumkin emas.');
+  }
+
+  const deleted = await this.prisma.seller.delete({
+    where: { id },
+  });
+
+  return {
+    message: 'Seller muvaffaqiyatli o‘chirildi',
+    deleted,
+  };
+}
+
 
   async DeniedPayments(sellerId: string): Promise<{
     sellerId: string;

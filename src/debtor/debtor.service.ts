@@ -14,6 +14,7 @@ export class DebtorService {
           fullname: data.fullname,
           address: data.address,
           note: data.note,
+          
           Seller: {
             connect: { id: sellerId }
           },

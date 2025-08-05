@@ -66,6 +66,15 @@ export class DebtService {
     const fullBorrowedProduct = await this.prisma.debt.findUnique({
       where: { id: debt.id },
       select: {
+        id: true,
+        name: true,
+        term: true,
+        total: true,
+        startDate: true,
+        monthlyPayment: true,
+        note: true,
+        createdAt:true,
+        updatedAt:true,
         Debtor: {
           select: {
             fullname: true,

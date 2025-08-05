@@ -97,12 +97,16 @@ export class SellerController {
     return this.sellerService.DeniedPayments(sellerId);
   }
 
+  @RoleD(Role.ADMIN)
   @Patch(':id')
+  @UseGuards(AuthGuard, RoleGuard)
   update(@Param('id') id: string, @Body() data: UpdateSellerDto) {
     return this.sellerService.update(id, data);
   }
 
+  @RoleD(Role.ADMIN)
   @Delete(':id')
+  @UseGuards(AuthGuard, RoleGuard)
   remove(@Param('id') id: string) {
     return this.sellerService.remove(id);
   }
