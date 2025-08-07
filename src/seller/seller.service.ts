@@ -441,6 +441,8 @@ export class SellerService {
         email: true,
         phone: true,
         role: true,
+        wallet:true,
+        img:true,
         createdAt: true,
         updatedAt: true,
 
