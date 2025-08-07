@@ -13,24 +13,35 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) { }
 
-  async register(data: CreateAuthDto) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    const existingAdmin = await this.prisma.admin.findUnique({
-      where: { phone: data.phone },
-    });
+ async register(data: CreateAuthDto) {
+  const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    if (existingAdmin) {
-      throw new BadRequestException('Bu telefon raqam bilan admin allaqachon mavjud');
-    }
+  // Har ikkisini tekshiramiz
+  const existingAdminByPhone = await this.prisma.admin.findUnique({
+    where: { phone: data.phone },
+  });
 
-    return this.prisma.admin.create({
-      data: {
-        ...data,
-        password: hashedPassword,
-        role: 'ADMIN',
-      },
-    });
+  if (existingAdminByPhone) {
+    throw new BadRequestException('Bu telefon raqam bilan admin allaqachon mavjud');
   }
+
+  const existingAdminByEmail = await this.prisma.admin.findUnique({
+    where: { email: data.email },
+  });
+
+  if (existingAdminByEmail) {
+    throw new BadRequestException('Bu email bilan admin allaqachon mavjud');
+  }
+
+  return this.prisma.admin.create({
+    data: {
+      ...data,
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
+  });
+}
+
 
   async login(dto: LoginAuthDto) {
     const admin = await this.prisma.admin.findFirst({
