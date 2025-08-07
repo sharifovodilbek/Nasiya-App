@@ -110,4 +110,12 @@ export class SellerController {
   remove(@Param('id') id: string) {
     return this.sellerService.remove(id);
   }
+
+  @RoleD(Role.SELLER)
+  @Get('me')
+  @UseGuards(AuthGuard, RoleGuard)
+  getMe(@Req() req) {
+    console.log('req.user.id:', req.user.id);
+    return this.sellerService.getMe(req.user.id);
+  }
 }

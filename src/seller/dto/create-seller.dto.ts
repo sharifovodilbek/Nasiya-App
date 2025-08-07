@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNumber, IsPhoneNumber, IsString,  } from "class-validator";
+import { IsBoolean, IsEmail, IsNumber, IsPhoneNumber, IsString,  } from "class-validator";
 
 export class CreateSellerDto {
   @ApiProperty({ example: "John Doe" })
@@ -25,5 +25,13 @@ export class CreateSellerDto {
   @ApiProperty({ example: "15000000" })
   @IsNumber()
   wallet: number;
+
+  @ApiProperty()
+  @IsString()
+  img:string
+
+  @ApiProperty()
+  @IsBoolean()
+  status:boolean
 
 }

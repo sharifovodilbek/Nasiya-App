@@ -48,6 +48,8 @@ model Seller {
   phone         String          @unique
   password      String
   passcode      Int
+  img           String
+  status        Boolean          @default(true)
   wallet        Int
   role          Role            @default(SELLER)
   resetOtp      String?

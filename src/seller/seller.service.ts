@@ -85,6 +85,8 @@ export class SellerService {
         password: hashedPassword,
         passcode: data.passcode,
         wallet: data.wallet,
+        img: data.img,
+        status:data.status
 
       },
       select: {
@@ -94,6 +96,8 @@ export class SellerService {
         password: true,
         passcode: true,
         wallet: true,
+        img: true,
+        status: true,
         createdAt: true,
         updatedAt: true
 
@@ -224,11 +228,16 @@ export class SellerService {
         data.password = await bcrypt.hash(data.password, salt);
       }
 
+      if (typeof data.img !== 'string') {
+        delete data.img;
+      }
+
       return await this.prisma.seller.update({ where: { id }, data });
     } catch (error) {
       throw new BadRequestException('Yangilashda xatolik: ' + error.message);
     }
   }
+
 
   async totalMonth(sellerId: string) {
     const now = new Date();
@@ -317,39 +326,40 @@ export class SellerService {
   }
 
   async remove(id: string) {
-  const seller = await this.prisma.seller.findUnique({
-    where: { id },
-  });
+    const seller = await this.prisma.seller.findUnique({
+      where: { id },
+    });
 
-  if (!seller) {
-    throw new NotFoundException('Seller not found');
+    if (!seller) {
+      throw new NotFoundException('Seller not found');
+    }
+
+    const debtorExists = await this.prisma.debtor.findFirst({
+      where: {
+        sellerId: id,
+      },
+    });
+
+    if (debtorExists) {
+      throw new BadRequestException('Bu sellerga bog‘liq qarzdorlar mavjud. O‘chirish mumkin emas.');
+    }
+
+    const deleted = await this.prisma.seller.delete({
+      where: { id },
+    });
+
+    return {
+      message: 'Seller muvaffaqiyatli o‘chirildi',
+      deleted,
+    };
   }
-
-  const debtorExists = await this.prisma.debtor.findFirst({
-    where: {
-      sellerId: id,
-    },
-  });
-
-  if (debtorExists) {
-    throw new BadRequestException('Bu sellerga bog‘liq qarzdorlar mavjud. O‘chirish mumkin emas.');
-  }
-
-  const deleted = await this.prisma.seller.delete({
-    where: { id },
-  });
-
-  return {
-    message: 'Seller muvaffaqiyatli o‘chirildi',
-    deleted,
-  };
-}
 
 
   async DeniedPayments(sellerId: string): Promise<{
     sellerId: string;
     lateDebtorsCount: number;
-    lateDebtors: LateDebtor[];}> {
+    lateDebtors: LateDebtor[];
+  }> {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -420,5 +430,26 @@ export class SellerService {
       lateDebtorsCount: lateDebtors.length,
       lateDebtors,
     };
+  }
+
+  async getMe(id: string) {
+    const user = await this.prisma.seller.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 }
