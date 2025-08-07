@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -15,6 +15,14 @@ export class AuthService {
 
   async register(data: CreateAuthDto) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    const existingAdmin = await this.prisma.admin.findUnique({
+      where: { phone: data.phone },
+    });
+
+    if (existingAdmin) {
+      throw new BadRequestException('Bu telefon raqam bilan admin allaqachon mavjud');
+    }
+
     return this.prisma.admin.create({
       data: {
         ...data,
@@ -43,7 +51,7 @@ export class AuthService {
     return { message: 'Succesfully login', token };
   }
 
-   async findAll(
+  async findAll(
     filter: string,
     page: number,
     limit: number,
@@ -78,7 +86,7 @@ export class AuthService {
         phone: true,
         password: true,
         email: true,
-        role:true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },
