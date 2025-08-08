@@ -75,6 +75,13 @@ export class SellerService {
   }
 
   async post(data: CreateSellerDto) {
+    const existingSeller = await this.prisma.seller.findFirst({
+      where: { name: data.name },
+    });
+
+    if (existingSeller) {
+      throw new BadRequestException(`Bu name oldin ro'yxatdan o'tgan: ${data.name}`);
+    }
     const hashedPassword = bcrypt.hashSync(data.password, 10);
 
     const newSeller = await this.prisma.seller.create({
@@ -86,7 +93,7 @@ export class SellerService {
         passcode: data.passcode,
         wallet: data.wallet,
         img: data.img,
-        status:data.status
+        status: data.status
 
       },
       select: {
@@ -107,16 +114,28 @@ export class SellerService {
     return newSeller;
   }
 
-  async login(data: LoginSellerDto) {
+  async login(data: { name: string; password: string }) {
+    const { name, password } = data;
 
-    const { email, password } = data;
-    let seller = await this.prisma.seller.findUnique({ where: { email } });
-    if (!seller) throw new NotFoundException('seller not found');
+    const seller = await this.prisma.seller.findUnique({
+      where: { name },
+    });
 
-    let match = bcrypt.compareSync(password, seller.password);
-    if (!match) throw new NotFoundException('wrong password');
+    if (!seller) {
+      throw new NotFoundException('Seller topilmadi');
+    }
 
-    let token = this.jwt.sign({ id: seller.id, email: seller.email, role: seller.role });
+    const match = await bcrypt.compare(password, seller.password);
+    if (!match) {
+      throw new NotFoundException('Noto‘g‘ri parol');
+    }
+
+    const token = this.jwt.sign({
+      id: seller.id,
+      name: seller.name,
+      role: seller.role,
+    });
+
     return { token };
   }
 
@@ -196,7 +215,7 @@ export class SellerService {
     return this.jwt.sign(
       {
         id: user.id,
-        fullname: user.fullname,
+        name: user.name,
         role: user.role,
         email: user.email,
         password: user.password,
@@ -441,8 +460,8 @@ export class SellerService {
         email: true,
         phone: true,
         role: true,
-        wallet:true,
-        img:true,
+        wallet: true,
+        img: true,
         createdAt: true,
         updatedAt: true,
 

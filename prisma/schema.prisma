@@ -43,7 +43,7 @@ model Debtor {
 
 model Seller {
   id            String          @id @default(uuid())
-  name          String
+  name          String          @unique
   email         String          @unique
   phone         String          @unique
   password      String
