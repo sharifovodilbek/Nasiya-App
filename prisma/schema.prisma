@@ -29,6 +29,7 @@ model Debtor {
   fullname       String
   address        String
   note           String
+  star           Boolean          @default(false)
   sellerId       String
   Seller         Seller           @relation(fields: [sellerId], references: [id])
   Sms            Sms[]
@@ -49,7 +50,7 @@ model Seller {
   password      String
   passcode      Int
   img           String
-  status        Boolean          @default(true)
+  status        Boolean         @default(true)
   wallet        Int
   role          Role            @default(SELLER)
   resetOtp      String?
@@ -58,19 +59,20 @@ model Seller {
   Sample        Sample[]
   Debtor        Debtor[]
   ImageOfDebtor ImageOfDebtor[]
-  Sms Sms[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+
+  Sms       Sms[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Debt {
   id             String           @id @default(uuid())
   name           String
-  startDate      DateTime     @default(now())
+  startDate      DateTime         @default(now())
   term           String
   note           String
   total          Int
-  monthlyPayment Int              
+  monthlyPayment Int
   debtorId       String
   Debtor         Debtor           @relation(fields: [debtorId], references: [id])
   Payments       Payment[]
@@ -116,8 +118,8 @@ model Sms {
   debtorId String
   debtor   Debtor  @relation(fields: [debtorId], references: [id])
 
-  sellerId  String
-  seller    Seller  @relation(fields: [sellerId], references: [id])
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id])
 }
 
 model NumberOfDebtor {

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsOptional, IsString } from "class-validator"
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator"
 
 export class CreateDebtorDto {
     @ApiProperty({ example: "John Doe" })
@@ -13,6 +13,10 @@ export class CreateDebtorDto {
     @ApiProperty({ example: "this note is about debtor" })
     @IsString()
     note: string
+
+    @ApiProperty()
+    @IsBoolean()
+    star: boolean
 
     @ApiProperty({
         example: [

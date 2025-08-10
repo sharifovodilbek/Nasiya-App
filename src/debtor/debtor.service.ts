@@ -14,7 +14,7 @@ export class DebtorService {
           fullname: data.fullname,
           address: data.address,
           note: data.note,
-          
+          star:data.star,
           Seller: {
             connect: { id: sellerId }
           },
@@ -80,6 +80,7 @@ export class DebtorService {
         fullname: true,
         address: true,
         note: true,
+        star:true,
         createdAt: true,
         updatedAt: true,
         ImagesOfDebtor: {
