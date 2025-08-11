@@ -374,82 +374,84 @@ export class SellerService {
   }
 
 
-  async DeniedPayments(sellerId: string): Promise<{
-    sellerId: string;
-    lateDebtorsCount: number;
-    lateDebtors: LateDebtor[];
-  }> {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+async DeniedPayments(sellerId: string): Promise<{
+  sellerId: string;
+  lateDebtorsCount: number;
+  lateDebtors: LateDebtor[];
+}> {
+  const now = new Date();
 
-    const debtors = await this.prisma.debtor.findMany({
-      where: { sellerId },
-      include: {
-        Debt: {
-          select: {
-            id: true,
-            name: true,
-            term: true,
-            monthlyPayment: true,
-            createdAt: true,
-          },
-        },
-        NumberOfDebtor: {
-          select: { number: true },
+  const startTime = new Date(now.getTime() - 2 * 60 * 1000); 
+  const endTime = now;
+
+  const debtors = await this.prisma.debtor.findMany({
+    where: { sellerId },
+    include: {
+      Debt: {
+        select: {
+          id: true,
+          name: true,
+          term: true,
+          monthlyPayment: true,
+          createdAt: true,
         },
       },
-    });
+      NumberOfDebtor: {
+        select: { number: true },
+      },
+    },
+  });
 
-    const lateDebtors: LateDebtor[] = [];
+  const lateDebtors: LateDebtor[] = [];
 
-    for (const debtor of debtors) {
-      const lateDebt: LateProduct[] = [];
+  for (const debtor of debtors) {
+    const lateDebt: LateProduct[] = [];
 
-      for (const product of debtor.Debt) {
-        const paymentDueDay = product.createdAt.getDate();
-        const today = now.getDate();
+    for (const product of debtor.Debt) {
+      const paymentDueTime = product.createdAt.getTime();
+      const nowTime = now.getTime();
 
-        const isPaymentDayPassed = today >= paymentDueDay;
+      // To'lov muddati o'tganmi? 2 minut kech qolishni sinab ko'ramiz (bu o'zgartirilishi mumkin)
+      const isPaymentTimePassed = nowTime >= paymentDueTime + 2 * 60 * 1000;
 
-        const isPaidThisMonth = await this.prisma.paymentHistory.findFirst({
-          where: {
-            debtId: product.id,
-            createAt: {
-              gte: startOfMonth,
-              lte: endOfMonth,
-            },
+      // Shu oxirgi 5 daqiqada to'lov qilinganmi?
+      const isPaidRecently = await this.prisma.paymentHistory.findFirst({
+        where: {
+          debtId: product.id,
+          createAt: {
+            gte: startTime,
+            lte: endTime,
           },
-        });
+        },
+      });
 
-        const hasPaid = !!isPaidThisMonth;
-
-        if (isPaymentDayPassed && !hasPaid) {
-          lateDebt.push({
-            debt: product.id,
-            debtName: product.name,
-            term: product.term,
-            monthlyPayment: product.monthlyPayment
-          });
-        }
-      }
-
-      if (lateDebt.length > 0) {
-        lateDebtors.push({
-          debtorId: debtor.id,
-          debtorName: debtor.fullname,
-          phoneNumbers: debtor.NumberOfDebtor.map((pn) => pn.number),
-          lateDebt,
+      if (isPaymentTimePassed && !isPaidRecently) {
+        lateDebt.push({
+          debt: product.id,
+          debtName: product.name,
+          term: product.term,
+          monthlyPayment: product.monthlyPayment,
         });
       }
     }
 
-    return {
-      sellerId,
-      lateDebtorsCount: lateDebtors.length,
-      lateDebtors,
-    };
+    if (lateDebt.length > 0) {
+      lateDebtors.push({
+        debtorId: debtor.id,
+        debtorName: debtor.fullname,
+        phoneNumbers: debtor.NumberOfDebtor.map((pn) => pn.number),
+        lateDebt,
+      });
+    }
   }
+
+  return {
+    sellerId,
+    lateDebtorsCount: lateDebtors.length,
+    lateDebtors,
+  };
+}
+
 
   async getMe(id: string) {
     const user = await this.prisma.seller.findUnique({
