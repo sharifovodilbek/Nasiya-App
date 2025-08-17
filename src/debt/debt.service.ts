@@ -159,29 +159,40 @@ export class DebtService {
   }
 
   async findOne(id: string) {
-    const debt = await this.prisma.debt.findUnique({
-      where: { id },
-      select: {
-        Debtor: {
-          select: {
-            fullname: true,
-            address: true,
-            note: true
-          }
+  const debt = await this.prisma.debt.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      startDate: true,
+      term: true,
+      total: true,
+      note: true,
+      monthlyPayment: true,
+      createdAt: true,
+      updatedAt: true,
+      Debtor: {
+        select: {
+          fullname: true,
+          address: true,
+          note: true,
         },
-        ImagesOfDebt: {
-          select: {
-            image: true
-          }
+      },
+      ImagesOfDebt: {
+        select: {
+          image: true,
         },
-      }
+      },
     },
-    );
-    if (!debt) {
-      throw new NotFoundException('Debt topilmadi');
-    }
-    return debt;
+  });
+
+  if (!debt) {
+    throw new NotFoundException('Debt topilmadi');
   }
+
+  return debt;
+}
+
 
   async update(id: string, data: UpdateDebtDto) {
     const existing = await this.prisma.debt.findUnique({ where: { id } });
