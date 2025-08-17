@@ -50,7 +50,8 @@ export class SmsService {
       select: {
         id: true,
         text: true,
-        isSend: true
+        isSend: true,
+        createdAt:true
       },
     });
 

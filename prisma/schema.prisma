@@ -120,6 +120,7 @@ model Sms {
 
   sellerId String
   seller   Seller @relation(fields: [sellerId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model NumberOfDebtor {
