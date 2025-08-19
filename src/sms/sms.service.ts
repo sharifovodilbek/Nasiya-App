@@ -51,7 +51,8 @@ export class SmsService {
         id: true,
         text: true,
         isSend: true,
-        createdAt:true
+        createdAt:true,
+        debtorId: true,
       },
     });
 
