@@ -130,13 +130,14 @@ export class DebtService {
         note: true,
         debtorId: true,
         paymentHistory: true,
+        monthlyPayment:true,
         createdAt: true,
         updatedAt: true,
         Debtor: {
           select: {
             fullname: true,
             address: true,
-            note: true
+            note: true,
           }
         },
         ImagesOfDebt: {
