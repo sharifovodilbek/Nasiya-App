@@ -133,6 +133,7 @@ export class DebtService {
         monthlyPayment:true,
         createdAt: true,
         updatedAt: true,
+        
         Debtor: {
           select: {
             fullname: true,

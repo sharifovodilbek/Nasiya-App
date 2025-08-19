@@ -102,7 +102,8 @@ export class DebtorService {
             total:true,
             monthlyPayment:true,
           }
-        }
+        },
+        Sms:true
       },
       where,
       skip,
@@ -124,19 +125,25 @@ export class DebtorService {
     };
   }
 
-  async findOne(id: string) {
-    try {
-      const debtor = await this.prisma.debtor.findUnique({ where: { id } }
-        
-      );
-      if (!debtor) {
-        throw new NotFoundException('Bunday IDga ega qarzdor topilmadi');
-      }
-      return debtor;
-    } catch (error) {
-      throw new BadRequestException('Topishda xatolik: ' + error.message);
+async findOne(id: string) {
+  try {
+    const debtor = await this.prisma.debtor.findUnique({
+      where: { id },
+      include: {
+        Sms: true, // debtor bilan birga Sms ham qaytadi
+      },
+    });
+
+    if (!debtor) {
+      throw new NotFoundException('Bunday IDga ega qarzdor topilmadi');
     }
+
+    return debtor;
+  } catch (error) {
+    throw new BadRequestException('Topishda xatolik: ' + error.message);
   }
+}
+
 
   async update(id: string, data: UpdateDebtorDto) {
   try {
