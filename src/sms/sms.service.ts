@@ -52,7 +52,17 @@ export class SmsService {
         text: true,
         isSend: true,
         createdAt:true,
-        debtorId: true,
+        debtor: {
+          select:{
+            id:true,
+            fullname:true,
+            NumberOfDebtor:{
+              select:{
+                number:true
+              }
+            }
+          }
+        }
       },
     });
 
