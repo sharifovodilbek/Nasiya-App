@@ -97,7 +97,7 @@ export class SellerController {
     return this.sellerService.DeniedPayments(sellerId);
   }
 
-  @RoleD(Role.ADMIN)
+  @RoleD(Role.ADMIN, Role.SELLER)
   @Patch(':id')
   @UseGuards(AuthGuard, RoleGuard)
   update(@Param('id') id: string, @Body() data: UpdateSellerDto) {
