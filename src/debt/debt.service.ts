@@ -139,6 +139,11 @@ export class DebtService {
             fullname: true,
             address: true,
             note: true,
+            NumberOfDebtor:{
+              select:{
+                number:true
+              }
+            }
           }
         },
         ImagesOfDebt: {
@@ -146,6 +151,7 @@ export class DebtService {
             image: true
           }
         },
+        
       },
     });
 
