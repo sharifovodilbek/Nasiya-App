@@ -130,7 +130,12 @@ async findOne(id: string) {
     const debtor = await this.prisma.debtor.findUnique({
       where: { id },
       include: {
-        Sms: true, // debtor bilan birga Sms ham qaytadi
+        Sms: true,
+        NumberOfDebtor:{
+          select:{
+            number:true
+          }
+        } 
       },
     });
 
