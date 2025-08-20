@@ -4,18 +4,22 @@ import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class UpdateDebtorDto extends PartialType(CreateDebtorDto) {
     @ApiProperty()
+    @IsOptional()
     @IsString()
     fullname?: string
 
     @ApiProperty()
+    @IsOptional()
     @IsString()
     address?: string
 
     @ApiProperty()
+    @IsOptional()
     @IsString()
     note?: string
 
     @ApiProperty()
+    @IsOptional()
     @IsBoolean()
     star?: boolean
 
@@ -37,6 +41,7 @@ export class UpdateDebtorDto extends PartialType(CreateDebtorDto) {
             "+998991234567",
             "+998992144567"]
     })
+    @IsOptional()
     phoneNumbers?: string[];
 
 }
