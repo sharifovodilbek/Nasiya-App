@@ -150,20 +150,14 @@ async findOne(id: string) {
 }
 
 
-  async update(id: string, data: UpdateDebtorDto) {
+async update(id: string, data: UpdateDebtorDto) {
   try {
     const existing = await this.prisma.debtor.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Yangilamoqchi bo\'lgan qarzdor topilmadi');
     }
 
-    const debts = await this.prisma.debt.findMany({
-      where: { debtorId: id },
-    });
-
-    if (debts.length > 0) {
-      throw new BadRequestException('Bu qarzdorning qarzlari mavjudligi sababli o\'chirib bo\'lmaydi');
-    }
+    
 
     if (data.images && data.images.length > 0) {
       await this.prisma.imageOfDebtor.updateMany({
@@ -193,6 +187,7 @@ async findOne(id: string) {
     throw new BadRequestException('Yangilashda xatolik: ' + error.message);
   }
 }
+
 
   async remove(id: string) {
     try {
